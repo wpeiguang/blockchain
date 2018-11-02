@@ -3,11 +3,12 @@ package com.wpg.blockchain.Service;
 import com.alibaba.fastjson.JSON;
 import com.wpg.blockchain.model.Block;
 import com.wpg.blockchain.util.CryptoUtil;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Service
 public class BlockChainService {
 
     /**
@@ -37,12 +38,12 @@ public class BlockChainService {
      * @return
      */
     private String calculateNonceHash(int index, String previousHash, long timestamp, String data, long nonce, Block newBlock){
-        StringBuilder builder = new StringBuilder(index).append(previousHash).append(timestamp).append(data);
         String hash;
         do {
             nonce = nonce + 1;
             System.out.println("nonce:"+nonce);
-            hash = CryptoUtil.getSHA256(builder.append(nonce).toString());
+            StringBuilder builder = new StringBuilder(index).append(previousHash).append(timestamp).append(data).append(nonce);
+            hash = CryptoUtil.getSHA256(builder.toString());
             if(isValidHashDifficulty(hash)) {
                 newBlock.setData(data);
                 newBlock.setHash(hash);
@@ -87,9 +88,9 @@ public class BlockChainService {
         //现在的时间戳
         long nextTimestamp = System.currentTimeMillis();
         //最后一个区块的难度值
-        Block latestBlock = getLatestBlock();
-        long nonce = latestBlock.getNonce();
-        calculateNonceHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, nonce, newBlock);
+//        Block latestBlock = getLatestBlock();
+//        long nonce = latestBlock.getNonce();
+        calculateNonceHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, 0, newBlock);
         System.out.println("new block: " + JSON.toJSONString(newBlock));
         return newBlock;
     }
@@ -166,7 +167,7 @@ public class BlockChainService {
             return false;
         }
         //循环每个验证区块是否合法
-        for (int i = 1; i < newBlocks.size(); i++) {
+        for (int i = 0; i < newBlocks.size(); i++) {
             if (isValidNewBlock(newBlocks.get(i), fristBlock)) {
                 fristBlock = newBlocks.get(i);
             } else {

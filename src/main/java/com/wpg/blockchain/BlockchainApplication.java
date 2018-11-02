@@ -10,8 +10,5 @@ public class BlockchainApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(BlockchainApplication.class, args);
-		BlockChainService blockChainService = new BlockChainService();
-		P2PService p2PService = new P2PService(blockChainService);
-		p2PService.initP2PServer(8080);
 	}
 }
