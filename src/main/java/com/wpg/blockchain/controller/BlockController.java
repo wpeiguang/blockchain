@@ -2,6 +2,7 @@ package com.wpg.blockchain.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.wpg.blockchain.Service.BlockChainService;
+import com.wpg.blockchain.Service.P2PService;
 import com.wpg.blockchain.model.Block;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,8 +15,11 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping
 public class HelloController {
 
-    private BlockChainService blockChainService = new BlockChainService();
+    @Autowired
+    private BlockChainService blockChainService;
 
+    @Autowired
+    private P2PService p2PService;
 
     @RequestMapping(value = "index", method = RequestMethod.GET)
     public String index(){
@@ -32,7 +36,9 @@ public class HelloController {
         String data = request.getParameter("data");
         Block newBlock = blockChainService.generateNextBlock(data);
         blockChainService.addBlock(newBlock);
-
-        return JSON.toJSONString(blockChainService.getBlockChain());
+        p2PService.broadcast(p2PService.responseLatestMsg());
+        String s = JSON.toJSONString(newBlock);
+        System.out.println("new block: " + s);
+        return s;
     }
 }
