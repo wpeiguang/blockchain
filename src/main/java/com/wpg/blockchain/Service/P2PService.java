@@ -11,7 +11,6 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.handshake.ServerHandshake;
 import org.java_websocket.server.WebSocketServer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -21,18 +20,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-@Service
 public class P2PService {
 
     private List<WebSocket> sockets;
 
-    @Autowired
     private BlockChainService blockChainService;
 
     public P2PService(BlockChainService blockChainService){
         this.blockChainService = blockChainService;
         this.sockets = new ArrayList<WebSocket>();
-        initP2PServer(7001);
+//        initP2PServer(7001);
     }
     /**
      * 初始化websoket服务
@@ -87,12 +84,13 @@ public class P2PService {
             final WebSocketClient socket = new WebSocketClient(new URI(peer)) {
                 @Override
                 public void onOpen(ServerHandshake serverHandshake) {
-                        write(this.getConnection(), queryChainLatestMsg());
-                    sockets.add(this.getConnection());
+                    write(this, queryChainLatestMsg());
+                    sockets.add(this);
                 }
+
                 @Override
                 public void onMessage(String s) {
-                    handleMessage(this.getConnection(), s);
+                    handleMessage(this, s);
                 }
 
                 @Override
@@ -189,5 +187,9 @@ public class P2PService {
 
     public List<WebSocket> getSockets() {
         return sockets;
+    }
+
+    public BlockChainService getBlockChainService() {
+        return blockChainService;
     }
 }

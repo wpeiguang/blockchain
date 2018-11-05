@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -23,10 +24,7 @@ import java.util.Map;
 public class BlockController {
 
     @Autowired
-    private BlockChainService blockChainService;
-
-    @Autowired
-    private P2PService p2PService;
+    private ServletContext servletContext;
 
     @RequestMapping(value = "index", method = RequestMethod.GET)
     public String index(){
@@ -35,22 +33,26 @@ public class BlockController {
 
     @RequestMapping(value = "blocks", method = RequestMethod.GET)
     public String blocks(){
+        P2PService p2PService = (P2PService) servletContext.getAttribute("p2pserver");
+        BlockChainService blockChainService = p2PService.getBlockChainService();
         return JSON.toJSONString(blockChainService.getBlockChain());
     }
 
     @RequestMapping(value = "mineBlock", method = RequestMethod.POST)
     public String mimeBlock(HttpServletRequest request){
+        P2PService p2PService = (P2PService) servletContext.getAttribute("p2pserver");
+        BlockChainService blockChainService = p2PService.getBlockChainService();
         String data = request.getParameter("data");
         Block newBlock = blockChainService.generateNextBlock(data);
         blockChainService.addBlock(newBlock);
         p2PService.broadcast(p2PService.responseLatestMsg());
         String s = JSON.toJSONString(newBlock);
-        System.out.println("new block: " + s);
         return s;
     }
 
     @RequestMapping(value = "addPeer", method = RequestMethod.POST)
     public String addPeer(HttpServletRequest request){
+        P2PService p2PService = (P2PService) servletContext.getAttribute("p2pserver");
         String peer = request.getParameter("peer");
         String hostAdd = peer.split(":")[1].split("//")[1];
         for(WebSocket socket : p2PService.getSockets()){
@@ -66,6 +68,7 @@ public class BlockController {
     @RequestMapping(value = "peers", method = RequestMethod.GET)
     public String peers(){
         List<Map<String, String>> peerList = new ArrayList<Map<String, String>>();
+        P2PService p2PService = (P2PService) servletContext.getAttribute("p2pserver");
         for(WebSocket socket : p2PService.getSockets()){
             InetSocketAddress remoteSocketAddr = socket.getRemoteSocketAddress();
             Map<String, String> peerMap = new HashMap<String, String>();

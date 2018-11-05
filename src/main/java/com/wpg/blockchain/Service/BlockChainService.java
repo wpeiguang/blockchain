@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
 public class BlockChainService {
 
     /**
@@ -41,7 +40,6 @@ public class BlockChainService {
         String hash;
         do {
             nonce = nonce + 1;
-            System.out.println("nonce:"+nonce);
             StringBuilder builder = new StringBuilder(index).append(previousHash).append(timestamp).append(data).append(nonce);
             hash = CryptoUtil.getSHA256(builder.toString());
             if(isValidHashDifficulty(hash)) {
@@ -53,7 +51,13 @@ public class BlockChainService {
                 newBlock.setTimestamp(timestamp);
             }
         }while (!isValidHashDifficulty(hash));
+        System.out.println("nonce:"+nonce);
         return hash;
+    }
+
+    private String calculateHash(int index, String previousHash, long timestamp, String data, long nonce){
+        StringBuilder builder = new StringBuilder(index).append(previousHash).append(timestamp).append(data).append(nonce);
+        return CryptoUtil.getSHA256(builder.toString());
     }
 
     /**
@@ -130,9 +134,9 @@ public class BlockChainService {
             System.out.println("invalid previous hash");
             return false;
         } else {
-            // String hash = calculateHash(newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(),
+             String hash = calculateHash(newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(),newBlock.getNonce());
             // newBlock.getData());
-            String hash = calculateNonceHash(newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(),newBlock.getNonce(),newBlock);
+//            String hash = calculateNonceHash(newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(),newBlock.getNonce(),newBlock);
             //如果hash和计算后的hash不相等
             if (!hash.equals(newBlock.getHash())) {
                 System.out.println("invalid hash: " + hash + " " + newBlock.getHash());
